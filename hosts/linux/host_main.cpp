@@ -39,6 +39,7 @@ int main(int argc, char** argv) {
     const char* dumpDir = nullptr;
     const char* jsonOut = nullptr;
     int winW = 960, winH = 540;
+    int interruptAt = -1;  // testing: simulate a lost window after N ticks
     for (int i = 1; i < argc; ++i) {
         if (!strcmp(argv[i], "--quick")) opt.mode = MODE_QUICK;
         else if (!strcmp(argv[i], "--frames") && i + 1 < argc) opt.frameOverride = (u32)atoi(argv[++i]);
@@ -47,10 +48,11 @@ int main(int argc, char** argv) {
         else if (!strcmp(argv[i], "--dump") && i + 1 < argc) dumpDir = argv[++i];
         else if (!strcmp(argv[i], "--json") && i + 1 < argc) jsonOut = argv[++i];
         else if (!strcmp(argv[i], "--no-present")) opt.present = false;
+        else if (!strcmp(argv[i], "--interrupt-at") && i + 1 < argc) interruptAt = atoi(argv[++i]);
         else {
             fprintf(stderr,
                     "usage: %s [--quick] [--frames N] [--mask 0xF] [--threads N] [--dump DIR] [--json FILE] "
-                    "[--no-present]\n",
+                    "[--no-present] [--interrupt-at TICK]\n",
                     argv[0]);
             return 1;
         }
@@ -88,7 +90,9 @@ int main(int argc, char** argv) {
     int lastDumped = -1;
     static char status[1024];
     u64 lastStatus = 0;
+    int ticks = 0;
     while (!bench->finished()) {
+        if (ticks++ == interruptAt) bench->interrupt();
         int ti = bench->test_index();
         bool half = bench->frame_index() * 2 >= bench->frame_total();
         bool present = bench->tick(winW, winH);
@@ -113,6 +117,7 @@ int main(int argc, char** argv) {
     StrBuf sb(result, sizeof(result));
     bench->result_json(sb);
     printf("%s\n", result);
+    fprintf(stderr, "interruptions: %u\n", bench->interruptions());
     if (jsonOut) {
         FILE* f = fopen(jsonOut, "w");
         if (f) {

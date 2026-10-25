@@ -136,6 +136,7 @@ public class MainActivity extends Activity implements SurfaceHolder.Callback {
     @Override
     protected void onResume() {
         super.onResume();
+        Log.i(TAG, "onResume");
         // Pick up a result that was produced (or an abort) while we were away.
         polling = true;
         handler.removeCallbacks(statusPoller);
@@ -145,6 +146,7 @@ public class MainActivity extends Activity implements SurfaceHolder.Callback {
     @Override
     protected void onPause() {
         super.onPause();
+        Log.i(TAG, "onPause");
         if (!NativeBridge.nativeIsRunning()) {
             polling = false;
             handler.removeCallbacks(statusPoller);
@@ -155,6 +157,7 @@ public class MainActivity extends Activity implements SurfaceHolder.Callback {
 
     @Override
     public void surfaceCreated(SurfaceHolder holder) {
+        Log.i(TAG, "surfaceCreated");
         NativeBridge.nativeSetSurface(holder.getSurface());
         surfaceReady = true;
         tryAutoStart();
@@ -163,10 +166,12 @@ public class MainActivity extends Activity implements SurfaceHolder.Callback {
     @Override
     public void surfaceChanged(SurfaceHolder holder, int format, int width, int height) {
         // The render thread queries the EGL surface size every frame.
+        Log.i(TAG, "surfaceChanged " + width + "x" + height);
     }
 
     @Override
     public void surfaceDestroyed(SurfaceHolder holder) {
+        Log.i(TAG, "surfaceDestroyed");
         surfaceReady = false;
         NativeBridge.nativeSetSurface(null);  // aborts a running benchmark
     }
@@ -231,6 +236,8 @@ public class MainActivity extends Activity implements SurfaceHolder.Callback {
             overlayText.setText(getString(R.string.stage_cpu_single, frame, frames));
         } else if ("cpu_multi".equals(stage)) {
             overlayText.setText(getString(R.string.stage_cpu_multi, frame, frames));
+        } else if ("paused".equals(stage)) {
+            overlayText.setText(R.string.stage_paused);
         } else if ("done".equals(stage)) {
             overlayText.setText(R.string.stage_done);
         } else if ("failed".equals(stage)) {

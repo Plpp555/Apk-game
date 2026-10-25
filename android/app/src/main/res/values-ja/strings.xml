@@ -24,8 +24,9 @@
     <string name="stage_running">%1$s · フレーム %2$d/%3$d · %4$.1f fps</string>
     <string name="stage_cpu_single">CPU物理演算 · シングルスレッド %1$d/%2$d ステップ</string>
     <string name="stage_cpu_multi">CPU物理演算 · マルチスレッド %1$d/%2$d ステップ</string>
+    <string name="stage_paused">一時停止中 — アプリが前面に戻ると、中断したテストを最初からやり直します。</string>
     <string name="stage_done">完了</string>
-    <string name="stage_aborted">中断されました（アプリが背面に移動したか、中止が押されました）</string>
+    <string name="stage_aborted">中止しました。</string>
     <string name="stage_failed">失敗: %1$s</string>
 
     <string name="score_overall">総合スコア</string>

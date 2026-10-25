@@ -65,6 +65,11 @@ public:
     void shutdown();
     void start();
     void abort();
+    // The output window went away (app paused, surface recreated): cancel the
+    // test in progress; the next tick() re-runs it from the beginning, so its
+    // timing is never polluted. Completed tests are kept.
+    void interrupt();
+    u32 interruptions() const { return m_interruptions; }
     // One unit of work (a frame, or a ~50 ms slice of the CPU test).
     // Returns true when a preview was drawn to framebuffer 0 and should be presented.
     bool tick(int winW, int winH);
@@ -102,6 +107,7 @@ private:
     int m_testIndex = 0;  // 0..2 GT, 3 CPU
     GraphicsTest* m_test = nullptr;
     int m_pendingSlot = -1;  // slot whose worker chain is dispatched but not yet finished
+    u32 m_interruptions = 0;
     gl::FrameFences m_fences;
     gl::GpuTimer m_timer;
 

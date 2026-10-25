@@ -164,7 +164,9 @@ void render_main(void*) {
     for (;;) {
         // Collect requests
         plat::mutex_lock(g_app.mtx);
-        while (!bench && g_app.windowCmd == WIN_NONE && !g_app.startReq && !g_app.abortReq)
+        // Sleep unless there is a request, or a benchmark that can run (it needs the window).
+        while ((!bench || rs.winSurf == EGL_NO_SURFACE) && g_app.windowCmd == WIN_NONE && !g_app.startReq &&
+               !g_app.abortReq)
             plat::cond_wait(g_app.cv, g_app.mtx);
         WindowCmd cmd = g_app.windowCmd;
         ANativeWindow* newWin = g_app.pendingWindow;
@@ -178,27 +180,39 @@ void render_main(void*) {
         g_app.abortReq = false;
         plat::mutex_unlock(g_app.mtx);
 
-        if (cmd != WIN_NONE || abortNow) {
-            // Losing the window (app in background) invalidates a running benchmark.
-            if (bench && (abortNow || cmd == WIN_RELEASE || cmd == WIN_SET)) {
-                bench->abort();
-                plat::mutex_lock(g_app.mtx);
-                publish_result(bench);
-                g_app.running = false;
-                plat::mutex_unlock(g_app.mtx);
-                bench->shutdown();
-                delete bench;
-                bench = nullptr;
+        if (abortNow && bench) {
+            plat::log_line("Stop requested: aborting benchmark");
+            bench->abort();
+            plat::mutex_lock(g_app.mtx);
+            publish_result(bench);
+            g_app.running = false;
+            plat::mutex_unlock(g_app.mtx);
+            bench->shutdown();
+            delete bench;
+            bench = nullptr;
+        }
+        if (cmd != WIN_NONE) {
+            // A lost or replaced window cancels only the test in progress; it is
+            // re-run from the start once a window is available again.
+            if (bench && rs.winSurf != EGL_NO_SURFACE) {
+                plat::log_line(cmd == WIN_RELEASE ? "Surface destroyed during run: pausing"
+                                                  : "Surface replaced during run: restarting current test");
+                bench->interrupt();
             }
             if (cmd == WIN_RELEASE) release_window(rs);
-            if (cmd == WIN_SET) set_window(rs, newWin);
-            if (cmd != WIN_NONE) {
-                plat::mutex_lock(g_app.mtx);
-                g_app.windowAck = true;
-                g_app.running = bench != nullptr;
-                plat::cond_broadcast(g_app.cv);
-                plat::mutex_unlock(g_app.mtx);
+            if (cmd == WIN_SET) {
+                set_window(rs, newWin);
+                plat::log_line(rs.winSurf != EGL_NO_SURFACE ? "Surface attached" : "Surface attach failed");
             }
+            plat::mutex_lock(g_app.mtx);
+            g_app.windowAck = true;
+            g_app.running = bench != nullptr;
+            if (bench && rs.winSurf == EGL_NO_SURFACE) {
+                StrBuf st(g_app.status, sizeof(g_app.status));
+                st.s("{\"stage\":\"paused\"}");
+            }
+            plat::cond_broadcast(g_app.cv);
+            plat::mutex_unlock(g_app.mtx);
         }
 
         if (start && (bench || rs.winSurf == EGL_NO_SURFACE)) {
@@ -219,6 +233,8 @@ void render_main(void*) {
             bench = new Benchmark();
             if (bench->init(get_proc, opt)) {
                 bench->start();
+                plat::log_line(opt.frameOverride ? "Benchmark started (frame override, unofficial)"
+                                                 : "Benchmark started");
             }
             plat::mutex_lock(g_app.mtx);
             g_app.resultReady = false;
@@ -226,13 +242,11 @@ void render_main(void*) {
             plat::mutex_unlock(g_app.mtx);
         }
 
-        if (bench) {
+        if (bench && rs.winSurf != EGL_NO_SURFACE) {
             EGLint w = 0, h = 0;
-            if (rs.winSurf != EGL_NO_SURFACE) {
-                eglQuerySurface(rs.dpy, rs.winSurf, EGL_WIDTH, &w);
-                eglQuerySurface(rs.dpy, rs.winSurf, EGL_HEIGHT, &h);
-            }
-            if (!bench->finished() && bench->tick(w, h) && rs.winSurf != EGL_NO_SURFACE) {
+            eglQuerySurface(rs.dpy, rs.winSurf, EGL_WIDTH, &w);
+            eglQuerySurface(rs.dpy, rs.winSurf, EGL_HEIGHT, &h);
+            if (!bench->finished() && bench->tick(w, h)) {
                 eglSwapBuffers(rs.dpy, rs.winSurf);
             }
             StrBuf sb(statusTmp, sizeof(statusTmp));

@@ -85,6 +85,7 @@ void Benchmark::start() {
     for (int i = 0; i < GT_COUNT; ++i) m_gt[i] = GtResult();
     m_cpu = CpuResult();
     m_testIndex = -1;
+    m_interruptions = 0;
     next_test();
 }
 
@@ -103,6 +104,24 @@ void Benchmark::abort() {
     m_phys.release();
     m_fences.destroy();
     m_stage = STAGE_ABORTED;
+}
+
+void Benchmark::interrupt() {
+    if (finished() || m_stage == STAGE_IDLE || m_stage == STAGE_LOADING) return;
+    if (m_test) {
+        if (m_pendingSlot >= 0) m_test->end_sim(m_pendingSlot, m_jobs);
+        m_pendingSlot = -1;
+        glFinish();
+        m_test->shutdown();
+        delete m_test;
+        m_test = nullptr;
+    }
+    m_preview.shutdown();
+    m_phys.release();
+    m_fences.destroy();
+    m_interruptions++;
+    m_stage = STAGE_LOADING;  // same m_testIndex: the interrupted test restarts
+    plat::log_line("Benchmark interrupted: the current test will be re-run");
 }
 
 u32 Benchmark::frame_total() const {
@@ -444,6 +463,7 @@ void Benchmark::result_json(StrBuf& sb) const {
     sb.s(",\"hdr\":").s(m_gpu.post.hdr() ? "true" : "false");
     sb.s(",\"timerQuery\":").s(m_gpu.caps.timerQuery ? "true" : "false").s("}");
     sb.s(",\"threads\":").u(m_jobs.worker_count() + 1);
+    sb.s(",\"interruptions\":").u(m_interruptions);
     sb.s(",\"resolution\":\"").i(kRenderWidth).s("x").i(kRenderHeight).s("\"");
     sb.s(",\"scores\":{\"overall\":").f(overall_score(), 0);
     sb.s(",\"graphics\":").f(graphics_score(), 0);

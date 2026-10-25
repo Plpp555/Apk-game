@@ -23,6 +23,9 @@ mkdir -p "$OUT"
 adb wait-for-device
 echo "device: sdk=$(adb shell getprop ro.build.version.sdk | tr -d '\r') abilist=$(adb shell getprop ro.product.cpu.abilist | tr -d '\r')"
 adb shell svc power stayon true || true
+adb shell settings put system screen_off_timeout 2147483647 || true
+adb shell input keyevent KEYCODE_WAKEUP || true
+adb shell wm dismiss-keyguard || true
 adb shell input keyevent 82 || true
 
 adb uninstall "$PKG" >/dev/null 2>&1 || true
@@ -64,7 +67,9 @@ echo "status: $status after $((SECONDS - start)) s"
 adb exec-out screencap -p > "$OUT/screen_final.png" || true
 adb logcat -d > "$OUT/logcat.txt" || true
 echo "---- TriSync3D log ----"
-grep -E "TriSync3D" "$OUT/logcat.txt" | grep -v "RESULT " | tail -n 40 || true
+grep -E "TriSync3D" "$OUT/logcat.txt" | grep -v "RESULT " | tail -n 60 || true
+echo "---- activity / window events ----"
+grep -iE "trisync" "$OUT/logcat.txt" | grep -vE "TriSync3D" | tail -n 25 || true
 if [ "$status" != done ]; then
     echo "---- crash / error log ----"
     grep -E "AndroidRuntime|DEBUG  |libc    |F/|E/TriSync3D" "$OUT/logcat.txt" | tail -n 80 || true

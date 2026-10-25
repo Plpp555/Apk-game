@@ -24,8 +24,9 @@
     <string name="stage_running">%1$s · frame %2$d/%3$d · %4$.1f fps</string>
     <string name="stage_cpu_single">CPU physics · single-thread %1$d/%2$d steps</string>
     <string name="stage_cpu_multi">CPU physics · multi-thread %1$d/%2$d steps</string>
+    <string name="stage_paused">Paused — the interrupted test restarts when the app is back in the foreground.</string>
     <string name="stage_done">Finished</string>
-    <string name="stage_aborted">Aborted — the app left the foreground or Stop was pressed.</string>
+    <string name="stage_aborted">Stopped.</string>
     <string name="stage_failed">Failed: %1$s</string>
 
     <string name="score_overall">Overall score</string>
