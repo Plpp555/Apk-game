@@ -27,6 +27,7 @@ struct App {
     bool windowAck;
     bool startReq;
     int startMode;
+    int startFrames;  // 0 = spec frame counts; >0 = smoke-test override (unofficial)
     bool abortReq;
     bool running;
     bool threadDead;
@@ -169,6 +170,7 @@ void render_main(void*) {
         ANativeWindow* newWin = g_app.pendingWindow;
         bool start = g_app.startReq;
         int mode = g_app.startMode;
+        int frames = g_app.startFrames;
         bool abortNow = g_app.abortReq;
         g_app.windowCmd = WIN_NONE;
         g_app.pendingWindow = nullptr;
@@ -213,6 +215,7 @@ void render_main(void*) {
             opt.mode = mode == 1 ? MODE_QUICK : MODE_STANDARD;
             opt.cpuCount = g_app.cpuCount;
             opt.platformName = "android";
+            opt.frameOverride = frames > 0 ? (u32)frames : 0;
             bench = new Benchmark();
             if (bench->init(get_proc, opt)) {
                 bench->start();
@@ -288,13 +291,15 @@ JNIEXPORT void JNICALL Java_com_plpp555_trisync3d_NativeBridge_nativeSetSurface(
     plat::mutex_unlock(g_app.mtx);
 }
 
-JNIEXPORT jboolean JNICALL Java_com_plpp555_trisync3d_NativeBridge_nativeStart(JNIEnv*, jclass, jint mode) {
+JNIEXPORT jboolean JNICALL Java_com_plpp555_trisync3d_NativeBridge_nativeStart(JNIEnv*, jclass, jint mode,
+                                                                              jint frames) {
     if (!g_app.started) return JNI_FALSE;
     plat::mutex_lock(g_app.mtx);
     bool ok = !g_app.running && !g_app.threadDead;
     if (ok) {
         g_app.startReq = true;
         g_app.startMode = mode;
+        g_app.startFrames = frames;
         g_app.resultReady = false;
         g_app.running = true;
         StrBuf st(g_app.status, sizeof(g_app.status));

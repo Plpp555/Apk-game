@@ -1,4 +1,4 @@
-name: Build
+name: Build and run
 
 on:
   push:
@@ -28,7 +28,7 @@ jobs:
           diff <(qemu-aarch64-static ./simcheck-arm64 --threads 3 --header) core/reference_hashes.h
 
   apk:
-    name: Android APK (Gradle + NDK)
+    name: APK (Gradle + NDK)
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -42,5 +42,75 @@ jobs:
         run: ./gradlew --no-daemon assembleRelease
       - uses: actions/upload-artifact@v4
         with:
-          name: TriSync3D-apk
+          name: apk-gradle
           path: android/app/build/outputs/apk/release/*.apk
+
+  apk-offline:
+    name: APK (offline toolchain, no SDK/NDK)
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install Ubuntu packages
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y clang lld llvm cmake ninja-build openjdk-17-jdk-headless \
+            aapt dalvik-exchange zipalign apksigner android-sdk-platform-23 \
+            libegl-dev libgles-dev android-libnativehelper-dev
+      - name: Build
+        run: tools/build_apk_offline.sh
+      - uses: actions/upload-artifact@v4
+        with:
+          name: apk-offline
+          path: build/offline/TriSync3D-*.apk
+
+  emulator:
+    name: Run on emulator (API ${{ matrix.api }}, ${{ matrix.abi }}, ${{ matrix.apk }})
+    needs: apk
+    if: ${{ !cancelled() }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 75
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - { api: 34, abi: x86_64, apk: dist }
+          - { api: 34, abi: arm64-v8a, apk: dist }
+          - { api: 30, abi: x86_64, apk: dist }
+          - { api: 34, abi: x86_64, apk: gradle }
+    steps:
+      - uses: actions/checkout@v4
+      - name: Enable KVM
+        run: |
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+          sudo udevadm control --reload-rules
+          sudo udevadm trigger --name-match=kvm
+      - name: Get Gradle APK
+        if: matrix.apk == 'gradle'
+        uses: actions/download-artifact@v4
+        with:
+          name: apk-gradle
+          path: apk-gradle
+      - name: Select APK
+        run: |
+          if [ "${{ matrix.apk }}" = gradle ]; then
+            echo "APK=$(ls apk-gradle/*.apk | head -n1)" >> "$GITHUB_ENV"
+          else
+            echo "APK=dist/TriSync3D-1.0.0.apk" >> "$GITHUB_ENV"
+          fi
+      - name: Run benchmark (quick mode, hashes verified)
+        uses: reactivecircus/android-emulator-runner@v2
+        with:
+          api-level: ${{ matrix.api }}
+          arch: x86_64
+          target: google_apis
+          cores: 4
+          ram-size: 4096M
+          emulator-options: -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none -no-snapshot
+          disable-animations: true
+          emulator-boot-timeout: 900
+          script: bash tools/ci/emulator_run.sh "$APK" quick 0 emulator-out ${{ matrix.abi == 'arm64-v8a' && 'arm64-v8a' || '' }}
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: emulator-api${{ matrix.api }}-${{ matrix.abi }}-${{ matrix.apk }}
+          path: emulator-out

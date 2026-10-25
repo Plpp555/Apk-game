@@ -8,6 +8,7 @@ import android.graphics.Typeface;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
+import android.util.Log;
 import android.util.TypedValue;
 import android.view.Gravity;
 import android.view.SurfaceHolder;
@@ -26,12 +27,23 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.io.File;
+import java.io.FileOutputStream;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Locale;
 
-/** Single-screen UI: device info, live preview, controls, results and history. */
+/**
+ * Single-screen UI: device info, live preview, controls, results and history.
+ *
+ * <p>Automation (CI / adb): {@code am start -n com.plpp555.trisync3d/.MainActivity --es autostart quick}
+ * starts a run as soon as the preview surface exists ({@code standard} or {@code quick}); the optional
+ * {@code --ei frames N} overrides the frame count for smoke tests (unofficial result). The final result
+ * JSON is written to logcat (tag TriSync3D, prefix "RESULT ") and to
+ * {@code /sdcard/Android/data/com.plpp555.trisync3d/files/result.json}.
+ */
 public class MainActivity extends Activity implements SurfaceHolder.Callback {
+    private static final String TAG = "TriSync3D";
     private static final long POLL_MS = 100;
 
     private final Handler handler = new Handler(Looper.getMainLooper());
@@ -49,6 +61,9 @@ public class MainActivity extends Activity implements SurfaceHolder.Callback {
     private boolean polling;
     private int runMode = NativeBridge.MODE_STANDARD;
     private String gpuRenderer = "";
+    private boolean surfaceReady;
+    private int autoStartMode = -1;
+    private int autoStartFrames;
 
     private final Runnable statusPoller = new Runnable() {
         @Override
@@ -90,6 +105,32 @@ public class MainActivity extends Activity implements SurfaceHolder.Callback {
         surfaceView.getHolder().addCallback(this);
         refreshHistory();
         handler.post(gpuInfoPoller);
+        handleAutomationIntent(getIntent());
+    }
+
+    @Override
+    protected void onNewIntent(Intent intent) {
+        super.onNewIntent(intent);
+        setIntent(intent);
+        handleAutomationIntent(intent);
+    }
+
+    private void handleAutomationIntent(Intent intent) {
+        if (intent == null) return;
+        String auto = intent.getStringExtra("autostart");
+        if (auto == null) return;
+        autoStartMode = "quick".equals(auto) ? NativeBridge.MODE_QUICK : NativeBridge.MODE_STANDARD;
+        autoStartFrames = Math.max(0, intent.getIntExtra("frames", 0));
+        intent.removeExtra("autostart");  // do not restart on configuration changes
+        Log.i(TAG, "autostart mode=" + auto + " frames=" + autoStartFrames);
+        tryAutoStart();
+    }
+
+    private void tryAutoStart() {
+        if (autoStartMode < 0 || !surfaceReady) return;
+        int mode = autoStartMode;
+        autoStartMode = -1;
+        startRun(mode, autoStartFrames);
     }
 
     @Override
@@ -115,6 +156,8 @@ public class MainActivity extends Activity implements SurfaceHolder.Callback {
     @Override
     public void surfaceCreated(SurfaceHolder holder) {
         NativeBridge.nativeSetSurface(holder.getSurface());
+        surfaceReady = true;
+        tryAutoStart();
     }
 
     @Override
@@ -124,13 +167,18 @@ public class MainActivity extends Activity implements SurfaceHolder.Callback {
 
     @Override
     public void surfaceDestroyed(SurfaceHolder holder) {
+        surfaceReady = false;
         NativeBridge.nativeSetSurface(null);  // aborts a running benchmark
     }
 
     // ---------------------------------------------------------------- Control
 
-    private void startRun(int mode) {
-        if (!NativeBridge.nativeStart(mode)) return;
+    private void startRun(int mode, int frames) {
+        if (!NativeBridge.nativeStart(mode, frames)) {
+            Log.w(TAG, "start refused (already running or no surface)");
+            return;
+        }
+        Log.i(TAG, "benchmark started mode=" + mode + " frames=" + frames);
         runMode = mode;
         setRunning(true);
         messageText.setVisibility(View.GONE);
@@ -193,6 +241,7 @@ public class MainActivity extends Activity implements SurfaceHolder.Callback {
 
     private void onRunFinished(String json) {
         setRunning(false);
+        exportResult(json);
         JSONObject r;
         try {
             r = new JSONObject(json);
@@ -218,6 +267,28 @@ public class MainActivity extends Activity implements SurfaceHolder.Callback {
     }
 
     // ---------------------------------------------------------------- Results
+
+    /** Makes the raw result available to automation (logcat + app-specific external file). */
+    private void exportResult(String json) {
+        Log.i(TAG, "RESULT " + json);
+        File dir = getExternalFilesDir(null);
+        if (dir == null) return;
+        FileOutputStream out = null;
+        try {
+            out = new FileOutputStream(new File(dir, "result.json"));
+            out.write(json.getBytes("UTF-8"));
+        } catch (Exception e) {
+            Log.w(TAG, "could not write result.json", e);
+        } finally {
+            if (out != null) {
+                try {
+                    out.close();
+                } catch (Exception ignored) {
+                    // ignore
+                }
+            }
+        }
+    }
 
     private void showResult(final JSONObject r) {
         resultCard.removeAllViews();
@@ -531,13 +602,13 @@ public class MainActivity extends Activity implements SurfaceHolder.Callback {
         startButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                startRun(NativeBridge.MODE_STANDARD);
+                startRun(NativeBridge.MODE_STANDARD, 0);
             }
         });
         quickButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                startRun(NativeBridge.MODE_QUICK);
+                startRun(NativeBridge.MODE_QUICK, 0);
             }
         });
         abortButton.setOnClickListener(new View.OnClickListener() {

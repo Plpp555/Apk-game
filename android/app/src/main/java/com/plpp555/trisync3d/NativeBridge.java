@@ -19,7 +19,8 @@ final class NativeBridge {
     /** Hands the preview surface to the render thread; null releases it (blocks until released). */
     static native void nativeSetSurface(Surface surface);
 
-    static native boolean nativeStart(int mode);
+    /** @param frames 0 = specification frame counts, &gt;0 = smoke-test override (result is unofficial). */
+    static native boolean nativeStart(int mode, int frames);
 
     static native void nativeAbort();
 
