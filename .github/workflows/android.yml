@@ -36,7 +36,8 @@ jobs:
         with:
           distribution: temurin
           java-version: 17
-      - uses: android-actions/setup-android@v3
+      # The Android SDK is preinstalled on GitHub's Ubuntu runners (ANDROID_HOME);
+      # Gradle installs the NDK / CMake versions pinned in app/build.gradle.
       - name: Build release APK
         working-directory: android
         run: ./gradlew --no-daemon assembleRelease
