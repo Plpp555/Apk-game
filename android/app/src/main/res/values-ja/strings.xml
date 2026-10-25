@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">TriSync 3D</string>
+    <string name="subtitle">クロスプラットフォーム3Dベンチマーク · Android / Windows / Windows 10 Mobile で同一の計算式</string>
+    <string name="btn_start">ベンチマーク開始</string>
+    <string name="btn_quick">クイック実行</string>
+    <string name="btn_abort">中止</string>
+    <string name="btn_share">結果を共有</string>
+    <string name="btn_clear_history">消去</string>
+
+    <string name="section_device">端末情報</string>
+    <string name="section_result">結果</string>
+    <string name="section_tests">テスト別</string>
+    <string name="section_cpu">CPU物理演算</string>
+    <string name="section_verify">計算一致検証</string>
+    <string name="section_history">履歴</string>
+    <string name="section_about">仕組み</string>
+
+    <string name="gpu_waiting">OpenGL ES 3.0 を初期化中…</string>
+    <string name="idle_hint">1920×1080固定のオフスクリーン描画で計測します。実行中（約2〜5分）は画面を点けたまま、アプリを前面にしておいてください。</string>
+
+    <string name="stage_loading">%1$s を準備中…</string>
+    <string name="stage_warmup">%1$s · ウォームアップ %2$d/%3$d</string>
+    <string name="stage_running">%1$s · フレーム %2$d/%3$d · %4$.1f fps</string>
+    <string name="stage_cpu_single">CPU物理演算 · シングルスレッド %1$d/%2$d ステップ</string>
+    <string name="stage_cpu_multi">CPU物理演算 · マルチスレッド %1$d/%2$d ステップ</string>
+    <string name="stage_paused">一時停止中 — アプリが前面に戻ると、中断したテストを最初からやり直します。</string>
+    <string name="stage_done">完了</string>
+    <string name="stage_aborted">中止しました。</string>
+    <string name="stage_failed">失敗: %1$s</string>
+
+    <string name="score_overall">総合スコア</string>
+    <string name="score_graphics">グラフィックス</string>
+    <string name="score_cpu">CPU</string>
+    <string name="score_cpu_single">CPU（1スレッド）</string>
+    <string name="badge_official">公式スコア</string>
+    <string name="badge_unofficial">非公式（クイック実行）</string>
+    <string name="badge_invalid">無効（検証に失敗）</string>
+
+    <string name="test_gt1">GT1 小惑星帯</string>
+    <string name="test_gt2">GT2 星雲の嵐</string>
+    <string name="test_gt3">GT3 ネオンシティ</string>
+    <string name="test_gt1_desc">3.2万個の公転岩石 · CPUカリング/LOD · インスタンシング</string>
+    <string name="test_gt2_desc">13万パーティクルをCPUで計算し毎フレーム転送 · フィルレート</string>
+    <string name="test_gt3_desc">256光源 · CPUクラスタ光源割り当て · GGXシェーディング</string>
+
+    <string name="fmt_fps">%1$.1f fps</string>
+    <string name="fmt_test_detail">1%%Low %1$.1f fps · CPUジョブ %2$.2f ms · GPU %3$s · %4$s</string>
+    <string name="gpu_na">計測不可</string>
+    <string name="bound_cpu">CPU律速</string>
+    <string name="bound_gpu">GPU律速</string>
+    <string name="bound_balanced">CPU/GPU均衡</string>
+    <string name="bound_driver">ドライバ律速</string>
+
+    <string name="cpu_rates">シングル %1$.2f M · マルチ %2$.2f M 球ステップ/秒</string>
+    <string name="cpu_scaling">%2$dスレッドで ×%1$.2f のスケーリング · 稼働率 %3$.0f%%</string>
+
+    <string name="verify_match">全プラットフォーム共通の参照値と一致</string>
+    <string name="verify_mismatch">参照値と不一致！</string>
+    <string name="verify_unknown">この設定の参照値はありません</string>
+    <string name="verify_threads_ok">シングル/マルチスレッドの計算結果がビット単位で一致</string>
+    <string name="verify_threads_bad">シングル/マルチスレッドの計算結果が不一致！</string>
+    <string name="verify_summary">%2$d 項目中 %1$d 項目のシミュレーションハッシュが、全プラットフォーム共通の参照値と一致しました。</string>
+
+    <string name="history_empty">まだ結果がありません。</string>
+    <string name="history_item">%1$s · %2$s · 総合 %3$d（GFX %4$d / CPU %5$d）</string>
+    <string name="mode_standard">標準</string>
+    <string name="mode_quick">クイック</string>
+
+    <string name="about_text">全プラットフォームが同じC++コアを実行します。プラットフォームの数学ライブラリに依存しない決定論的な計算式、同一のGLSL ES 3.00シェーダー、1920×1080固定のオフスクリーン解像度、1フレーム＝1/60秒固定のタイムステップを使用します。ワーカースレッドがフレームN+1を計算してマップ済みGPUバッファへ直接書き込む間に、GPUはフレームNを描画します。トリプルバッファのリングをフェンスで保護し、CPUとGPUのどちらも待たされない構成です。検証ハッシュにより、端末を問わず計算がビット単位で一致することを確認できます。</string>
+    <string name="share_subject">TriSync 3D の結果</string>
+</resources>

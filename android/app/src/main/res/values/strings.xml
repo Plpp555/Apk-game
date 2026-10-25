@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">TriSync 3D</string>
+    <string name="subtitle">Cross-platform 3D benchmark · identical math on Android / Windows / Windows 10 Mobile</string>
+    <string name="btn_start">Run benchmark</string>
+    <string name="btn_quick">Quick run</string>
+    <string name="btn_abort">Stop</string>
+    <string name="btn_share">Share result</string>
+    <string name="btn_clear_history">Clear</string>
+
+    <string name="section_device">Device</string>
+    <string name="section_result">Result</string>
+    <string name="section_tests">Tests</string>
+    <string name="section_cpu">CPU physics</string>
+    <string name="section_verify">Calculation verification</string>
+    <string name="section_history">History</string>
+    <string name="section_about">How it works</string>
+
+    <string name="gpu_waiting">Initialising OpenGL ES 3.0…</string>
+    <string name="idle_hint">Fixed 1920×1080 offscreen rendering. Keep the screen on and the app in the foreground while it runs (about 2–5 minutes).</string>
+
+    <string name="stage_loading">Loading %1$s…</string>
+    <string name="stage_warmup">%1$s · warm-up %2$d/%3$d</string>
+    <string name="stage_running">%1$s · frame %2$d/%3$d · %4$.1f fps</string>
+    <string name="stage_cpu_single">CPU physics · single-thread %1$d/%2$d steps</string>
+    <string name="stage_cpu_multi">CPU physics · multi-thread %1$d/%2$d steps</string>
+    <string name="stage_paused">Paused — the interrupted test restarts when the app is back in the foreground.</string>
+    <string name="stage_done">Finished</string>
+    <string name="stage_aborted">Stopped.</string>
+    <string name="stage_failed">Failed: %1$s</string>
+
+    <string name="score_overall">Overall score</string>
+    <string name="score_graphics">Graphics</string>
+    <string name="score_cpu">CPU</string>
+    <string name="score_cpu_single">CPU (1 thread)</string>
+    <string name="badge_official">OFFICIAL</string>
+    <string name="badge_unofficial">UNOFFICIAL (quick run)</string>
+    <string name="badge_invalid">NOT VALID (verification failed)</string>
+
+    <string name="test_gt1">GT1 Asteroid Belt</string>
+    <string name="test_gt2">GT2 Nebula Storm</string>
+    <string name="test_gt3">GT3 Neon City</string>
+    <string name="test_gt1_desc">32k orbiting rocks · CPU culling/LOD · instancing</string>
+    <string name="test_gt2_desc">131k CPU particles streamed per frame · fill rate</string>
+    <string name="test_gt3_desc">256 lights · CPU clustered light binning · GGX</string>
+
+    <string name="fmt_fps">%1$.1f fps</string>
+    <string name="fmt_test_detail">1%% low %1$.1f fps · CPU jobs %2$.2f ms · GPU %3$s · %4$s</string>
+    <string name="gpu_na">n/a</string>
+    <string name="bound_cpu">CPU-bound</string>
+    <string name="bound_gpu">GPU-bound</string>
+    <string name="bound_balanced">CPU/GPU balanced</string>
+    <string name="bound_driver">driver-bound</string>
+
+    <string name="cpu_rates">Single %1$.2f M · Multi %2$.2f M sphere-steps/s</string>
+    <string name="cpu_scaling">Scaling ×%1$.2f on %2$d threads · utilisation %3$.0f%%</string>
+
+    <string name="verify_match">Matches the cross-platform reference</string>
+    <string name="verify_mismatch">Differs from the reference!</string>
+    <string name="verify_unknown">No reference for this configuration</string>
+    <string name="verify_threads_ok">Single-thread and multi-thread results are bit-identical</string>
+    <string name="verify_threads_bad">Single-thread and multi-thread results differ!</string>
+    <string name="verify_summary">%1$d of %2$d simulation hashes match the reference values shared by every platform.</string>
+
+    <string name="history_empty">No results yet.</string>
+    <string name="history_item">%1$s · %2$s · Overall %3$d (GFX %4$d / CPU %5$d)</string>
+    <string name="mode_standard">Standard</string>
+    <string name="mode_quick">Quick</string>
+
+    <string name="about_text">Every platform runs the same C++ core: identical deterministic formulas (no platform math library), the same GLSL ES 3.00 shaders, a fixed 1920×1080 offscreen resolution and a fixed 1/60 s timestep per frame. Worker threads simulate frame N+1 and write directly into mapped GPU buffers while the GPU renders frame N; fences guard a triple-buffered ring so neither side stalls. Verification hashes prove that the calculations are bit-identical across devices.</string>
+    <string name="share_subject">TriSync 3D result</string>
+</resources>

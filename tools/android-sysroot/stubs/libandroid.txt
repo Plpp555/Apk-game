@@ -1,0 +1,6 @@
+ANativeWindow_acquire
+ANativeWindow_fromSurface
+ANativeWindow_getHeight
+ANativeWindow_getWidth
+ANativeWindow_release
+ANativeWindow_setBuffersGeometry
