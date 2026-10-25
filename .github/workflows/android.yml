@@ -1,0 +1,46 @@
+name: Build
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  determinism:
+    name: Determinism check (x86_64 + ARM64)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install tools
+        run: sudo apt-get update && sudo apt-get install -y ninja-build clang g++-aarch64-linux-gnu qemu-user-static
+      - name: Build simcheck (x86_64)
+        run: |
+          cmake -S . -B build-host -G Ninja -DCMAKE_BUILD_TYPE=Release
+          cmake --build build-host --target simcheck
+      - name: Compare with core/reference_hashes.h (x86_64)
+        run: diff <(./build-host/simcheck --threads 3 --header) core/reference_hashes.h
+      - name: Compare with core/reference_hashes.h (ARM64 under qemu)
+        run: |
+          aarch64-linux-gnu-g++ -O2 -std=c++17 -ffp-contract=off -fno-math-errno -fno-exceptions -fno-rtti -static \
+            core/strbuf.cpp core/detmath.cpp core/jobs.cpp core/mesh_gen.cpp core/sim_common.cpp \
+            core/sim_asteroids.cpp core/sim_particles.cpp core/sim_city.cpp core/sim_physics.cpp \
+            platform/posix/platform_posix.cpp hosts/simcheck/simcheck_main.cpp -o simcheck-arm64 -lpthread
+          diff <(qemu-aarch64-static ./simcheck-arm64 --threads 3 --header) core/reference_hashes.h
+
+  apk:
+    name: Android APK (Gradle + NDK)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 17
+      - uses: android-actions/setup-android@v3
+      - name: Build release APK
+        working-directory: android
+        run: ./gradlew --no-daemon assembleRelease
+      - uses: actions/upload-artifact@v4
+        with:
+          name: TriSync3D-apk
+          path: android/app/build/outputs/apk/release/*.apk

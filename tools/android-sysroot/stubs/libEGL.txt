@@ -1,0 +1,13 @@
+eglChooseConfig
+eglCreateContext
+eglCreatePbufferSurface
+eglCreateWindowSurface
+eglDestroySurface
+eglGetConfigAttrib
+eglGetDisplay
+eglGetProcAddress
+eglInitialize
+eglMakeCurrent
+eglQuerySurface
+eglSwapBuffers
+eglSwapInterval
