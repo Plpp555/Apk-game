@@ -19,12 +19,6 @@ public:
         m_groundProg = gl::program("city_ground", shaders::GROUND_VS, shaders::CITY_FS, shaders::NOISE);
         m_sphereProg = gl::program("sphere", shaders::SPHERE_VS, shaders::SPHERE_FS);
         if (!m_buildingProg || !m_groundProg || !m_sphereProg) return false;
-        GLuint progs[2] = {m_buildingProg, m_groundProg};
-        for (GLuint p : progs) {
-            GLuint blockIndex = glGetUniformBlockIndex(p, "LightBlock");
-            if (blockIndex == GL_INVALID_INDEX) return false;
-            glUniformBlockBinding(p, blockIndex, 0);
-        }
         MeshData box, plane, sphere;
         mesh_box(box);
         mesh_plane(plane, 420.0f);
@@ -32,7 +26,7 @@ public:
         if (!m_box.create(box) || !m_plane.create(plane) || !m_sphere.create(sphere)) return false;
 
         bool ok = m_buildings.create(GL_ARRAY_BUFFER, m_sim.dst_bytes(CitySim::DST_BUILDINGS));
-        ok = ok && m_lights.create(GL_UNIFORM_BUFFER, m_sim.dst_bytes(CitySim::DST_LIGHTS));
+        ok = ok && m_lights.create(GL_PIXEL_UNPACK_BUFFER, m_sim.dst_bytes(CitySim::DST_LIGHTS));
         ok = ok && m_clusters.create(GL_PIXEL_UNPACK_BUFFER, m_sim.dst_bytes(CitySim::DST_CLUSTERS));
         ok = ok && m_cars.create(GL_ARRAY_BUFFER, m_sim.dst_bytes(CitySim::DST_CARS));
         if (!ok) return false;
@@ -40,6 +34,13 @@ public:
         for (int i = 0; i < gl::StreamRing::SLOTS; ++i) {
             glBindTexture(GL_TEXTURE_2D, m_clusterTex[i]);
             glTexStorage2D(GL_TEXTURE_2D, 1, GL_R8UI, CitySim::CLUSTERS, CitySim::MAX_PER_CLUSTER + 1);
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+        }
+        glGenTextures(gl::StreamRing::SLOTS, m_lightTex);
+        for (int i = 0; i < gl::StreamRing::SLOTS; ++i) {
+            glBindTexture(GL_TEXTURE_2D, m_lightTex[i]);
+            glTexStorage2D(GL_TEXTURE_2D, 1, GL_RGBA32F, CitySim::LIGHTS, 2);
             glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
             glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
         }
@@ -61,7 +62,8 @@ public:
         m_clusters.destroy();
         m_cars.destroy();
         if (m_clusterTex[0]) glDeleteTextures(gl::StreamRing::SLOTS, m_clusterTex);
-        for (int i = 0; i < gl::StreamRing::SLOTS; ++i) m_clusterTex[i] = 0;
+        if (m_lightTex[0]) glDeleteTextures(gl::StreamRing::SLOTS, m_lightTex);
+        for (int i = 0; i < gl::StreamRing::SLOTS; ++i) m_clusterTex[i] = m_lightTex[i] = 0;
         m_sim.release();
     }
 
@@ -99,6 +101,7 @@ public:
         set_f(p, "uBlockPitch", CitySim::kPitch);
         set_i(p, "uMaterial", material);
         set_i(p, "uClusters", 0);
+        set_i(p, "uLights", 1);
     }
 
     void render(u32 frame, int slot) override {
@@ -112,9 +115,12 @@ public:
         glBindTexture(GL_TEXTURE_2D, m_clusterTex[slot]);
         glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, CitySim::CLUSTERS, CitySim::MAX_PER_CLUSTER + 1, GL_RED_INTEGER,
                         GL_UNSIGNED_BYTE, nullptr);
+        // Light positions/colours, same path
+        glBindBuffer(GL_PIXEL_UNPACK_BUFFER, m_lights.buf[slot]);
+        glBindTexture(GL_TEXTURE_2D, m_lightTex[slot]);
+        glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, CitySim::LIGHTS, 2, GL_RGBA, GL_FLOAT, nullptr);
         glBindBuffer(GL_PIXEL_UNPACK_BUFFER, 0);
         glPixelStorei(GL_UNPACK_ALIGNMENT, 4);
-        glBindBufferBase(GL_UNIFORM_BUFFER, 0, m_lights.buf[slot]);
 
         gpu.post.begin_scene(0.0f, 0.0f, 0.0f);
         gpu.sky.draw_city(f.cam, f.time, kMoonDir);
@@ -127,6 +133,9 @@ public:
         glDisable(GL_BLEND);
         glActiveTexture(GL_TEXTURE0);
         glBindTexture(GL_TEXTURE_2D, m_clusterTex[slot]);
+        glActiveTexture(GL_TEXTURE1);
+        glBindTexture(GL_TEXTURE_2D, m_lightTex[slot]);
+        glActiveTexture(GL_TEXTURE0);
 
         // Buildings, nearest distance bucket first
         setup_city_program(m_buildingProg, f, slot, 0);
@@ -174,6 +183,7 @@ private:
     CityFrame m_frames[gl::StreamRing::SLOTS];
     gl::StreamRing m_buildings, m_lights, m_clusters, m_cars;
     GLuint m_clusterTex[gl::StreamRing::SLOTS] = {0, 0, 0};
+    GLuint m_lightTex[gl::StreamRing::SLOTS] = {0, 0, 0};
     GLuint m_buildingProg = 0, m_groundProg = 0, m_sphereProg = 0;
     GpuMesh m_box, m_plane, m_sphere;
     float m_sliceScale = 1.0f, m_sliceBias = 0.0f;

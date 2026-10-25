@@ -337,10 +337,9 @@ in float vViewZ;
 flat in float vSeed;
 out vec4 oColor;
 
-layout(std140) uniform LightBlock {
-    vec4 uLightPosRad[256];
-    vec4 uLightColor[256];
-};
+// Light data: 256x2 RGBA32F texture, row 0 = position/radius, row 1 = colour.
+// (A 256-entry uniform block exceeds the default-uniform limit on some drivers.)
+uniform highp sampler2D uLights;
 uniform highp usampler2D uClusters;
 uniform vec2 uTileSize;
 uniform float uSliceScale;
@@ -362,7 +361,7 @@ vec3 cluster_lights(vec3 wp, vec3 N, vec3 V, vec3 albedo, float rough) {
     vec3 acc = vec3(0.0);
     for (int k = 0; k < cnt; ++k) {
         int li = int(texelFetch(uClusters, ivec2(cid, k + 1), 0).r);
-        vec4 pr = uLightPosRad[li];
+        vec4 pr = texelFetch(uLights, ivec2(li, 0), 0);
         vec3 Lv = pr.xyz - wp;
         float d2 = dot(Lv, Lv);
         float r2 = pr.w * pr.w;
@@ -376,7 +375,7 @@ vec3 cluster_lights(vec3 wp, vec3 N, vec3 V, vec3 albedo, float rough) {
         float ndh = max(dot(N, H), 0.0);
         float dd = ndh * ndh * (a2 - 1.0) + 1.0;
         float D = a2 / (3.14159265 * dd * dd);
-        acc += uLightColor[li].rgb * att * ndl * (albedo * 0.31830989 + vec3(D * 0.2));
+        acc += texelFetch(uLights, ivec2(li, 1), 0).rgb * att * ndl * (albedo * 0.31830989 + vec3(D * 0.2));
     }
     return acc;
 }

@@ -19,7 +19,7 @@ static inline u32 next_rand(u32& state) {
 u32 CitySim::dst_bytes(int which) const {
     switch (which) {
         case DST_BUILDINGS: return m_buildingCount * (u32)sizeof(BuildingInstance);
-        case DST_LIGHTS: return LIGHTS * 32;  // std140: vec4 posRad[256] + vec4 color[256]
+        case DST_LIGHTS: return LIGHTS * 32;  // RGBA32F 256x2: posRad row, colour row
         case DST_CLUSTERS: return CLUSTERS * (MAX_PER_CLUSTER + 1);
         case DST_CARS: return LIGHTS * (u32)sizeof(ParticleInstance);
     }
@@ -194,7 +194,7 @@ void CitySim::update_light(u32 i, float t) {
     L.z = (float)L.iz * kPitch + dz * L.prog + dx * L.lane;
     L.y = L.flying ? L.baseY + 1.5f * dm::sin(t * 0.9f + (float)i) : L.baseY;
 
-    // Upload: std140 vec4 posRad[256]; vec4 color[256]
+    // Upload: RGBA32F texture rows: posRad[256], colour[256]
     float* ubo = (float*)m_dst[DST_LIGHTS];
     ubo[i * 4 + 0] = L.x;
     ubo[i * 4 + 1] = L.y;
