@@ -7,6 +7,20 @@ CPU (マルチスレッドのジョブシステム) と GPU が並行して仕�
 > 現在の配布物: **Android APK** (`dist/TriSync3D-1.0.0.apk`)。Windows / Windows 10 Mobile 版は同じコアを使って実装予定です
 > (移植手順は [docs/SPEC.md](docs/SPEC.md) §8)。
 
+## 動作確認
+
+GitHub Actions 上の Android エミュレータで APK を実際に起動し、クイック計測を最後まで実行して検証しています。
+
+| 環境 | ABI | APK | 結果 |
+|---|---|---|---|
+| Android 14 (API 34) | x86_64 | `dist/` (オフラインビルド) | 全4テスト完走、検証ハッシュ 4/4 一致 |
+| Android 14 (API 34) | arm64-v8a (ARM 変換) | `dist/` (オフラインビルド) | 全4テスト完走、検証ハッシュ 4/4 一致 |
+| Android 14 (API 34) | x86_64 | Gradle + NDK | 全4テスト完走、検証ハッシュ 4/4 一致 |
+| Android 11 (API 30) | x86_64 | `dist/` (オフラインビルド) | 全4テスト完走、検証ハッシュ 4/4 一致 |
+| Linux (Mesa llvmpipe) | x86_64 | `hosts/linux` | 全4テスト完走、検証ハッシュ 4/4 一致 |
+
+エミュレータの GPU はソフトウェア (SwiftShader) のため FPS は実機よりはるかに低くなります。実機 (Snapdragon / Dimensity / Tensor 等) での計測はまだ行っていません。
+
 ## 特長
 
 - **計算式の一致を証明**: OS の数学ライブラリを使わない決定論的な計算 (`core/detmath.h`)。各テストのシミュレーション状態を

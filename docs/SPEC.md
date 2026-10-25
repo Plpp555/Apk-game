@@ -67,6 +67,9 @@ android/                  Android アプリ (Java UI)
 | x86_64 gcc 13 / clang 18 | 一致 | 一致 | 一致 | 一致 |
 | ARM64 gcc 13 / clang 18 (qemu) | 一致 | 一致 | 一致 | 一致 |
 | スレッド数 0 / 1 / 3 | 一致 | 一致 | 一致 | 一致 |
+| Android 14 エミュレータ x86_64 (APK 内で計測) | 一致 | 一致 | 一致 | 一致 |
+| Android 14 エミュレータ arm64-v8a (ARM 変換, APK 内で計測) | 一致 | 一致 | 一致 | 一致 |
+| Android 11 エミュレータ x86_64 (APK 内で計測) | 一致 | 一致 | 一致 | 一致 |
 
 CI (`.github/workflows/android.yml`) が x86_64 と ARM64 の両方で毎回 `core/reference_hashes.h` と照合します。
 
