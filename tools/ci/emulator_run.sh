@@ -45,7 +45,9 @@ status=running
 while :; do
     sleep 10
     n=$((n + 1))
-    if adb shell "test -f $RESULT && echo yes" | grep -q yes; then
+    # The app logs its result JSON as "RESULT {...}" (also readable on Android 11+,
+    # where adb cannot see /sdcard/Android/data).
+    if adb logcat -d -v raw -s TriSync3D:I | grep -q '^RESULT '; then
         status=done
         break
     fi
@@ -75,7 +77,8 @@ if [ "$status" != done ]; then
     grep -E "AndroidRuntime|DEBUG  |libc    |F/|E/TriSync3D" "$OUT/logcat.txt" | tail -n 80 || true
     exit 1
 fi
-adb pull "$RESULT" "$OUT/result.json"
+adb logcat -d -v raw -s TriSync3D:I | grep '^RESULT ' | tail -n 1 | sed 's/^RESULT //' | tr -d '\r' > "$OUT/result.json"
+adb pull "$RESULT" "$OUT/result-file.json" >/dev/null 2>&1 || true
 if [ "$FRAMES" = "0" ]; then
     python3 "$ROOT/tools/ci/check_result.py" "$OUT/result.json" --require-match
 else
