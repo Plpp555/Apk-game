@@ -79,6 +79,19 @@ EGL_PLATFORM=surfaceless build/linux/bench_host --frames 30 --dump /tmp   # ヘ�
 
 シミュレーションを変更した場合は `build/linux/simcheck --header > core/reference_hashes.h` で参照値を更新します。
 
+### D. 自動実行 (adb / CI)
+
+```bash
+adb install dist/TriSync3D-1.0.0.apk
+adb shell am start -n com.plpp555.trisync3d/.MainActivity --es autostart quick   # standard / quick
+adb pull /sdcard/Android/data/com.plpp555.trisync3d/files/result.json            # 結果 JSON
+```
+
+`--ei frames N` を付けるとフレーム数を短縮したスモークテストになります (非公式扱い)。結果は logcat (タグ `TriSync3D`、`RESULT ` 行) にも出力されます。
+GitHub Actions (`.github/workflows/android.yml`) は、決定性チェック (x86_64 / ARM64)、Gradle + NDK ビルド、オフラインビルドに加えて、
+Android エミュレータ (API 30 / 34、x86_64 と ARM 変換経由の arm64-v8a) で APK を実際に起動し、クイック計測と参照ハッシュの一致を検証します
+(`tools/ci/emulator_run.sh`, `tools/ci/check_result.py`)。
+
 ## ディレクトリ構成
 
 ```
