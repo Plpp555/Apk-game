@@ -88,8 +88,6 @@ public class MainActivity extends Activity {
 
         bindSeekBar(R.id.seek_text_size, R.id.label_text_size, R.string.text_size, Prefs.KEY_TEXT_SIZE_SP,
                 Prefs.MIN_TEXT_SIZE_SP, Prefs.MAX_TEXT_SIZE_SP, Prefs.DEF_TEXT_SIZE_SP);
-        bindSeekBar(R.id.seek_bg_alpha, R.id.label_bg_alpha, R.string.bg_alpha, Prefs.KEY_BG_ALPHA_PCT,
-                0, 100, Prefs.DEF_BG_ALPHA_PCT);
         bindSeekBar(R.id.seek_offset_x, R.id.label_offset_x, R.string.offset_x, Prefs.KEY_OFFSET_X_DP,
                 0, Prefs.MAX_OFFSET_DP, Prefs.DEF_OFFSET_X_DP);
         bindSeekBar(R.id.seek_offset_y, R.id.label_offset_y, R.string.offset_y, Prefs.KEY_OFFSET_Y_DP,

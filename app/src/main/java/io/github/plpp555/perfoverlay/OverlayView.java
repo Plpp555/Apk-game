@@ -4,12 +4,11 @@ import android.content.Context;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
-import android.graphics.RectF;
 import android.graphics.Typeface;
 import android.util.TypedValue;
 import android.view.View;
 
-/** 右上に出す「ラベル 値」の表。どんな背景でも読めるよう文字に黒フチを付ける。 */
+/** 右上に出す「ラベル 値」の表。背景は描かず、どんな画面でも読めるよう文字に黒フチを付ける。 */
 final class OverlayView extends View {
     static final int MAX_ROWS = 4;
     private static final String[] ALL_LABELS = {"FPS", "Hz", "RAM", "CPU", "BAT"};
@@ -24,12 +23,9 @@ final class OverlayView extends View {
     private final Paint labelStroke = new Paint(Paint.ANTI_ALIAS_FLAG);
     private final Paint valuePaint = new Paint(Paint.ANTI_ALIAS_FLAG);
     private final Paint valueStroke = new Paint(Paint.ANTI_ALIAS_FLAG);
-    private final Paint bgPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
-    private final RectF bgRect = new RectF();
 
     private float padding;
     private float gap;
-    private float corner;
     private float lineHeight;
     private float labelWidth;
     /** 幅が 1 秒ごとに変わって表示が揺れないよう、これまでの最大幅を保持する。 */
@@ -48,10 +44,10 @@ final class OverlayView extends View {
             p.setStrokeJoin(Paint.Join.ROUND);
             p.setColor(Color.BLACK);
         }
-        setStyle(Prefs.DEF_TEXT_SIZE_SP, Prefs.DEF_BG_ALPHA_PCT);
+        setStyle(Prefs.DEF_TEXT_SIZE_SP);
     }
 
-    void setStyle(float textSizeSp, int bgAlphaPct) {
+    void setStyle(float textSizeSp) {
         float px = TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_SP, textSizeSp,
                 getResources().getDisplayMetrics());
         valuePaint.setTextSize(px);
@@ -60,11 +56,10 @@ final class OverlayView extends View {
         labelPaint.setTextSize(px * 0.62f);
         labelStroke.setTextSize(px * 0.62f);
         labelStroke.setStrokeWidth(Math.max(2f, px * 0.10f));
-        bgPaint.setColor(Color.argb(Math.round(bgAlphaPct * 2.55f), 0, 0, 0));
 
-        padding = px * 0.35f;
+        // フチ取りがはみ出さない分だけ余白を取る
+        padding = px * 0.12f;
         gap = px * 0.3f;
-        corner = px * 0.35f;
         Paint.FontMetrics fm = valuePaint.getFontMetrics();
         lineHeight = fm.descent - fm.ascent;
         labelWidth = 0f;
@@ -107,9 +102,6 @@ final class OverlayView extends View {
 
     @Override
     protected void onDraw(Canvas canvas) {
-        bgRect.set(0, 0, getWidth(), getHeight());
-        canvas.drawRoundRect(bgRect, corner, corner, bgPaint);
-
         float ascent = -valuePaint.getFontMetrics().ascent;
         float valueX = padding + labelWidth + gap;
         for (int i = 0; i < rows; i++) {

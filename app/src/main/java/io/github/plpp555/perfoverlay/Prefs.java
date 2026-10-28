@@ -6,13 +6,11 @@ import android.content.SharedPreferences;
 /** 設定値（MainActivity で編集し、OverlayService が変更を監視する）。 */
 final class Prefs {
     static final String KEY_TEXT_SIZE_SP = "text_size_sp";
-    static final String KEY_BG_ALPHA_PCT = "bg_alpha_pct";
     static final String KEY_OFFSET_X_DP = "offset_x_dp";
     static final String KEY_OFFSET_Y_DP = "offset_y_dp";
     static final String KEY_AUTOSTART = "autostart";
 
-    static final int DEF_TEXT_SIZE_SP = 24;
-    static final int DEF_BG_ALPHA_PCT = 55;
+    static final int DEF_TEXT_SIZE_SP = 20;
     static final int DEF_OFFSET_X_DP = 4;
     static final int DEF_OFFSET_Y_DP = 4;
 

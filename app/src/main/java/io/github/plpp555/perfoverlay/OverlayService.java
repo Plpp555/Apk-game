@@ -261,7 +261,7 @@ public class OverlayService extends Service implements SharedPreferences.OnShare
 
     private void switchToSimple() {
         releaseFpsMeter();
-        fpsMeter = new ChoreographerFpsMeter();
+        fpsMeter = new RefreshRateMeter(this);
         fpsMeter.setActive(screenOn);
         sMode = MODE_SIMPLE;
     }
@@ -321,8 +321,7 @@ public class OverlayService extends Service implements SharedPreferences.OnShare
     }
 
     private void applyStyle() {
-        overlay.setStyle(prefs.getInt(Prefs.KEY_TEXT_SIZE_SP, Prefs.DEF_TEXT_SIZE_SP),
-                prefs.getInt(Prefs.KEY_BG_ALPHA_PCT, Prefs.DEF_BG_ALPHA_PCT));
+        overlay.setStyle(prefs.getInt(Prefs.KEY_TEXT_SIZE_SP, Prefs.DEF_TEXT_SIZE_SP));
     }
 
     private void applyPosition() {
