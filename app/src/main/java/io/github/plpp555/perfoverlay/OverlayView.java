@@ -31,7 +31,7 @@ final class OverlayView extends View {
     /** 幅が 1 秒ごとに変わって表示が揺れないよう、これまでの最大幅を保持する。 */
     private float valueWidth;
 
-    OverlayView(Context context) {
+    OverlayView(Context context, float textSizeSp) {
         super(context);
         Typeface mono = Typeface.create(Typeface.MONOSPACE, Typeface.BOLD);
         valuePaint.setTypeface(mono);
@@ -44,10 +44,7 @@ final class OverlayView extends View {
             p.setStrokeJoin(Paint.Join.ROUND);
             p.setColor(Color.BLACK);
         }
-        setStyle(Prefs.DEF_TEXT_SIZE_SP);
-    }
 
-    void setStyle(float textSizeSp) {
         float px = TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_SP, textSizeSp,
                 getResources().getDisplayMetrics());
         valuePaint.setTextSize(px);
@@ -62,16 +59,10 @@ final class OverlayView extends View {
         gap = px * 0.3f;
         Paint.FontMetrics fm = valuePaint.getFontMetrics();
         lineHeight = fm.descent - fm.ascent;
-        labelWidth = 0f;
+
         for (String l : ALL_LABELS) {
             labelWidth = Math.max(labelWidth, labelPaint.measureText(l));
         }
-        valueWidth = 0f;
-        for (int i = 0; i < rows; i++) {
-            valueWidth = Math.max(valueWidth, valuePaint.measureText(values[i]));
-        }
-        requestLayout();
-        invalidate();
     }
 
     void setRows(int count, String[] newLabels, String[] newValues, int[] newColors) {

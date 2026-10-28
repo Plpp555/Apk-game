@@ -10,7 +10,6 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
-import android.content.SharedPreferences;
 import android.content.pm.ServiceInfo;
 import android.graphics.PixelFormat;
 import android.os.BatteryManager;
@@ -30,7 +29,7 @@ import android.widget.Toast;
 import java.util.Locale;
 
 /** オーバーレイを表示し続けるフォアグラウンドサービス。 */
-public class OverlayService extends Service implements SharedPreferences.OnSharedPreferenceChangeListener {
+public class OverlayService extends Service {
     static final String ACTION_START = "io.github.plpp555.perfoverlay.START";
     static final String ACTION_STOP = "io.github.plpp555.perfoverlay.STOP";
     static final String EXTRA_MODE = "mode";
@@ -41,7 +40,7 @@ public class OverlayService extends Service implements SharedPreferences.OnShare
     static final int MODE_SIMPLE = 0;
     static final int MODE_CAPTURE = 1;
 
-    /** MainActivity の状態表示用。 */
+    /** MainActivity が「表示中なら停止」を判断するため。 */
     static volatile int sMode = MODE_NONE;
 
     private static final String TAG = "PerfOverlay";
@@ -49,6 +48,8 @@ public class OverlayService extends Service implements SharedPreferences.OnShare
     private static final int NOTIFICATION_ID = 1;
     private static final long INTERVAL_MS = 1000;
     private static final float GIB = 1024f * 1024f * 1024f;
+    private static final int TEXT_SIZE_SP = 20;
+    private static final int MARGIN_DP = 4;
 
     private static final int GOOD = 0xFF5CFF6B;
     private static final int WARN = 0xFFFFD54F;
@@ -63,7 +64,6 @@ public class OverlayService extends Service implements SharedPreferences.OnShare
 
     private WindowManager windowManager;
     private ActivityManager activityManager;
-    private SharedPreferences prefs;
     private HandlerThread worker;
     private Handler workerHandler;
     private OverlayView overlay;
@@ -138,9 +138,6 @@ public class OverlayService extends Service implements SharedPreferences.OnShare
         super.onCreate();
         windowManager = (WindowManager) getSystemService(WINDOW_SERVICE);
         activityManager = (ActivityManager) getSystemService(ACTIVITY_SERVICE);
-        prefs = Prefs.get(this);
-        prefs.registerOnSharedPreferenceChangeListener(this);
-
         worker = new HandlerThread("perf-sampler");
         worker.start();
         workerHandler = new Handler(worker.getLooper());
@@ -211,7 +208,6 @@ public class OverlayService extends Service implements SharedPreferences.OnShare
         sMode = MODE_NONE;
         handler.removeCallbacks(tick);
         releaseFpsMeter();
-        prefs.unregisterOnSharedPreferenceChangeListener(this);
         unregisterReceiver(batteryReceiver);
         unregisterReceiver(screenReceiver);
         if (overlay != null) {
@@ -223,14 +219,6 @@ public class OverlayService extends Service implements SharedPreferences.OnShare
         }
         worker.quitSafely();
         super.onDestroy();
-    }
-
-    @Override
-    public void onSharedPreferenceChanged(SharedPreferences sharedPreferences, String key) {
-        if (overlay != null) {
-            applyStyle();
-            applyPosition();
-        }
     }
 
     // ---- FPS 計測方式の切り替え ----
@@ -288,8 +276,7 @@ public class OverlayService extends Service implements SharedPreferences.OnShare
             return true;
         }
         // 権限の有無は addView の成否で判断する（Android 8.0 では許可直後の canDrawOverlays が false を返す不具合がある）
-        overlay = new OverlayView(this);
-        applyStyle();
+        overlay = new OverlayView(this, TEXT_SIZE_SP);
         params = new WindowManager.LayoutParams(
                 WindowManager.LayoutParams.WRAP_CONTENT,
                 WindowManager.LayoutParams.WRAP_CONTENT,
@@ -302,7 +289,8 @@ public class OverlayService extends Service implements SharedPreferences.OnShare
             params.alpha = 0.8f;
         }
         params.setTitle("PerfOverlay");
-        applyPosition();
+        params.x = dp(MARGIN_DP);
+        params.y = dp(MARGIN_DP);
         try {
             windowManager.addView(overlay, params);
         } catch (RuntimeException e) {
@@ -318,23 +306,6 @@ public class OverlayService extends Service implements SharedPreferences.OnShare
         return Build.VERSION.SDK_INT >= 26
                 ? WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY
                 : WindowManager.LayoutParams.TYPE_PHONE;
-    }
-
-    private void applyStyle() {
-        overlay.setStyle(prefs.getInt(Prefs.KEY_TEXT_SIZE_SP, Prefs.DEF_TEXT_SIZE_SP));
-    }
-
-    private void applyPosition() {
-        int x = dp(prefs.getInt(Prefs.KEY_OFFSET_X_DP, Prefs.DEF_OFFSET_X_DP));
-        int y = dp(prefs.getInt(Prefs.KEY_OFFSET_Y_DP, Prefs.DEF_OFFSET_Y_DP));
-        if (params.x == x && params.y == y) {
-            return;
-        }
-        params.x = x;
-        params.y = y;
-        if (overlay.isAttachedToWindow()) {
-            windowManager.updateViewLayout(overlay, params);
-        }
     }
 
     private int dp(int value) {
@@ -438,8 +409,6 @@ public class OverlayService extends Service implements SharedPreferences.OnShare
         if (Build.VERSION.SDK_INT >= 23) {
             piFlags |= PendingIntent.FLAG_IMMUTABLE;
         }
-        PendingIntent open = PendingIntent.getActivity(this, 0,
-                new Intent(this, MainActivity.class), piFlags);
         PendingIntent stop = PendingIntent.getService(this, 1,
                 new Intent(this, OverlayService.class).setAction(ACTION_STOP), piFlags);
 
@@ -453,7 +422,6 @@ public class OverlayService extends Service implements SharedPreferences.OnShare
                 .setCategory(Notification.CATEGORY_SERVICE)
                 .setOngoing(true)
                 .setShowWhen(false)
-                .setContentIntent(open)
                 .addAction(new Notification.Action.Builder(R.drawable.ic_stat,
                         getString(R.string.action_stop), stop).build())
                 .build();

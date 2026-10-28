@@ -2,44 +2,15 @@
 <resources>
     <string name="app_name">PerfOverlay</string>
 
-    <string name="intro">FPS・RAM使用量・温度を画面右上に常に表示します（root不要）。</string>
-
-    <string name="section_permissions">1. 権限</string>
-    <string name="grant_overlay">他のアプリの上に重ねて表示を許可</string>
-    <string name="overlay_granted">✓ 重ねて表示: 許可済み</string>
-    <string name="grant_notifications">通知を許可（常駐通知の表示用）</string>
-    <string name="notifications_granted">✓ 通知: 許可済み</string>
-
-    <string name="section_start">2. 開始 / 停止</string>
-    <string name="start_capture">▶ 開始（FPS計測あり・おすすめ）</string>
-    <string name="start_capture_hint">ゲームのFPSを実測します。開始時に「画面の録画/共有」の確認が出るので「画面全体」を選んで許可してください（録画データは保存も送信もしません）。</string>
-    <string name="start_simple">▶ 開始（画面キャプチャなし）</string>
-    <string name="start_simple_hint">画面キャプチャを使わないモードです。非rootでは他アプリのFPSを直接取得できないため、FPSの代わりに画面のリフレッシュレート（Hz）を表示します。</string>
-    <string name="stop">■ 停止</string>
-
-    <string name="status_stopped">状態: 停止中</string>
-    <string name="status_capture">状態: 表示中（FPS計測モード）</string>
-    <string name="status_simple">状態: 表示中（簡易モード / Hz表示）</string>
-
-    <string name="section_appearance">3. 表示の設定</string>
-    <string name="text_size">文字サイズ: %1$d sp</string>
-    <string name="offset_x">右端からの距離: %1$d dp</string>
-    <string name="offset_y">上端からの距離: %1$d dp</string>
-    <string name="autostart">端末の起動時に自動で開始する（キャプチャなしモード）</string>
-
-    <string name="section_notes">表示内容</string>
-    <string name="notes">• FPS … 画面が1秒間に更新された回数。画面が止まっていると0〜1になります。\n• Hz … キャプチャなしモードで表示される画面のリフレッシュレート（OSの設定値を読むだけなので負荷はほぼゼロ）。\n• RAM … 端末全体のメモリ使用量 / 総容量（GB）。\n• CPU … CPU温度。機種によってはAndroidの制限で読めないため表示されません。\n• BAT … バッテリー温度（全機種で表示）。\n\n色: 緑=良好 / 黄=注意 / 赤=高負荷・高温\n\nXiaomi(MIUI/HyperOS)などで表示されない場合は、アプリ情報の「その他の権限」で「バックグラウンドでポップアップを表示」も許可してください。電池の最適化で止まる場合は、このアプリを「制限なし」にしてください。</string>
-
     <string name="channel_name">オーバーレイ表示</string>
     <string name="notif_title">PerfOverlay 表示中</string>
     <string name="notif_text_capture">FPS: 画面キャプチャで計測中</string>
-    <string name="notif_text_simple">簡易モード（FPSの代わりにリフレッシュレートを表示）</string>
+    <string name="notif_text_simple">FPSの代わりにリフレッシュレート（Hz）を表示中</string>
     <string name="action_stop">停止</string>
 
-    <string name="toast_need_overlay">先に「他のアプリの上に重ねて表示」を許可してください</string>
+    <string name="toast_need_overlay">「他のアプリの上に重ねて表示」を許可してください</string>
+    <string name="toast_stopped">表示を停止しました</string>
     <string name="toast_no_overlay_permission">重ねて表示の権限がないため開始できません</string>
-    <string name="toast_capture_denied">画面キャプチャが許可されなかったので開始しませんでした</string>
-    <string name="toast_capture_failed">画面キャプチャを開始できなかったため簡易モードで表示します</string>
-    <string name="toast_capture_stopped">画面キャプチャが停止されたため簡易モード（Hz表示）に切り替えました</string>
-    <string name="toast_overlay_settings_missing">設定画面を開けませんでした。設定 &gt; アプリ から許可してください</string>
+    <string name="toast_capture_failed">画面キャプチャを開始できなかったため Hz を表示します</string>
+    <string name="toast_capture_stopped">画面キャプチャが停止されたため Hz 表示に切り替えました</string>
 </resources>
