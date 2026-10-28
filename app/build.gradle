@@ -1,0 +1,46 @@
+plugins {
+    id 'com.android.application'
+}
+
+android {
+    namespace 'io.github.plpp555.perfoverlay'
+    compileSdk 35
+
+    defaultConfig {
+        applicationId 'io.github.plpp555.perfoverlay'
+        minSdk 21
+        targetSdk 35
+        versionCode 1
+        versionName '1.0'
+    }
+
+    signingConfigs {
+        // 個人用ツールなので、CI とローカルのどちらでビルドしても上書きインストールできるよう
+        // 署名鍵をリポジトリに同梱している（Android の debug.keystore と同じ扱い）。
+        shared {
+            storeFile rootProject.file('signing/perfoverlay.jks')
+            storePassword 'android'
+            keyAlias 'perfoverlay'
+            keyPassword 'android'
+        }
+    }
+
+    buildTypes {
+        debug {
+            signingConfig signingConfigs.shared
+        }
+        release {
+            minifyEnabled false
+            signingConfig signingConfigs.shared
+        }
+    }
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_1_8
+        targetCompatibility JavaVersion.VERSION_1_8
+    }
+
+    lint {
+        checkReleaseBuilds false
+    }
+}

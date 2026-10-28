@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Android 7.1 以前用のアイコン（8.0 以降は drawable-anydpi-v26 のアダプティブアイコン） -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="48dp"
+    android:height="48dp"
+    android:viewportWidth="48"
+    android:viewportHeight="48">
+    <path
+        android:fillColor="#FF263238"
+        android:pathData="M24,2a22,22 0,1 1,0 44a22,22 0,1 1,0 -44z" />
+    <path
+        android:fillColor="#FF5CFF6B"
+        android:pathData="M13.5,25h5v8h-5z" />
+    <path
+        android:fillColor="#FFFFD54F"
+        android:pathData="M21.5,20h5v13h-5z" />
+    <path
+        android:fillColor="#FFFF5252"
+        android:pathData="M29.5,15h5v18h-5z" />
+</vector>

@@ -1,0 +1,144 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:fitsSystemWindows="true">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="16dp">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/app_name"
+            android:textSize="28sp"
+            android:textStyle="bold" />
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="4dp"
+            android:text="@string/intro"
+            android:textSize="15sp" />
+
+        <!-- 1. 権限 -->
+        <TextView
+            style="@style/SectionTitle"
+            android:text="@string/section_permissions" />
+
+        <Button
+            android:id="@+id/btn_overlay_permission"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/grant_overlay" />
+
+        <Button
+            android:id="@+id/btn_notification_permission"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/grant_notifications" />
+
+        <!-- 2. 開始 / 停止 -->
+        <TextView
+            style="@style/SectionTitle"
+            android:text="@string/section_start" />
+
+        <TextView
+            android:id="@+id/status"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="4dp"
+            android:textSize="16sp"
+            android:textStyle="bold" />
+
+        <Button
+            android:id="@+id/btn_start_capture"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/start_capture" />
+
+        <TextView
+            style="@style/Hint"
+            android:text="@string/start_capture_hint" />
+
+        <Button
+            android:id="@+id/btn_start_simple"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/start_simple" />
+
+        <TextView
+            style="@style/Hint"
+            android:text="@string/start_simple_hint" />
+
+        <Button
+            android:id="@+id/btn_stop"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/stop" />
+
+        <!-- 3. 表示の設定 -->
+        <TextView
+            style="@style/SectionTitle"
+            android:text="@string/section_appearance" />
+
+        <TextView
+            android:id="@+id/label_text_size"
+            style="@style/SettingLabel" />
+
+        <SeekBar
+            android:id="@+id/seek_text_size"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content" />
+
+        <TextView
+            android:id="@+id/label_bg_alpha"
+            style="@style/SettingLabel" />
+
+        <SeekBar
+            android:id="@+id/seek_bg_alpha"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:max="100" />
+
+        <TextView
+            android:id="@+id/label_offset_x"
+            style="@style/SettingLabel" />
+
+        <SeekBar
+            android:id="@+id/seek_offset_x"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content" />
+
+        <TextView
+            android:id="@+id/label_offset_y"
+            style="@style/SettingLabel" />
+
+        <SeekBar
+            android:id="@+id/seek_offset_y"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content" />
+
+        <CheckBox
+            android:id="@+id/check_autostart"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:text="@string/autostart" />
+
+        <!-- 説明 -->
+        <TextView
+            style="@style/SectionTitle"
+            android:text="@string/section_notes" />
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:lineSpacingMultiplier="1.15"
+            android:text="@string/notes"
+            android:textSize="14sp" />
+    </LinearLayout>
+</ScrollView>
